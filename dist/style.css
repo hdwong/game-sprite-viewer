@@ -1,0 +1,85 @@
+body {
+  font-family: Arial, sans-serif;
+  padding: 24px;
+  background-color: #f4f4f4;
+}
+#game {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+  margin: 0 auto;
+  padding: 24px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+#game-container {
+  border: 1px solid #ddd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 160px;
+  height: 160px;
+}
+canvas {
+  display: block;
+  width: 96px;
+  height: 96px;
+  image-rendering: pixelated;
+}
+#controller {
+  width: 160px;
+}
+#controller .arrow {
+  position: relative;
+}
+#controller .arrow button {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  color: #333;
+  border-radius: 5px;
+  cursor: pointer;
+}
+#controller .arrow button:hover {
+  background-color: #f4f4f4;
+}
+#controller .arrow button.active {
+  background-color: #007bff;
+  color: #fff;
+}
+#up-arrow { top: 0; left: 48px }
+#up-arrow::before { content: '↑' }
+#left-arrow { top: 48px; left: 0 }
+#left-arrow::before { content: '←' }
+#right-arrow { top: 48px; left: 96px }
+#right-arrow::before { content: '→' }
+#down-arrow { top: 96px; left: 48px }
+#down-arrow::before { content: '↓' }
+#up-left-arrow { top: 0; left: 0 }
+#up-left-arrow::before { content: '↖' }
+#up-right-arrow { top: 0; left: 96px }
+#up-right-arrow::before { content: '↗' }
+#down-left-arrow { top: 96px; left: 0 }
+#down-left-arrow::before { content: '↙' }
+#down-right-arrow { top: 96px; left: 96px }
+#down-right-arrow::before { content: '↘' }
+#stand-arrow { top: 48px; left: 48px }
+#stand-arrow::before { content: 'Stand'; font-size: 10px }
+#information {
+  width: 320px;
+  font-size: 14px;
+}
+#information > div {
+  margin-bottom: 8px;
+}
+#information label {
+  margin-right: 8px;
+  color: #666;
+}
