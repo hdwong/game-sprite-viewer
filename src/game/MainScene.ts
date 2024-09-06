@@ -30,7 +30,13 @@ class MainScene extends Phaser.Scene {
     return `test${this._spriteIndex}`;
   }
 
-  private _createAnimations() {
+  private _createAnimations(remove = false) {
+    if (remove) {
+      this.anims.remove('front');
+      this.anims.remove('right');
+      this.anims.remove('back');
+      this.anims.remove('left');
+    }
     this.anims.create({
       key: 'front',
       frames: this.anims.generateFrameNumbers(this._getSpriteKey(), { start: 0, end: 3 }),
@@ -129,11 +135,7 @@ class MainScene extends Phaser.Scene {
   changeSpriteIndex(index: string) {
     this._spriteIndex = index;
     // update animation
-    this.anims.remove('front');
-    this.anims.remove('right');
-    this.anims.remove('back');
-    this.anims.remove('left');
-    this._createAnimations();
+    this._createAnimations(true);
     // update sprite
     this._sprite?.setTexture(this._getSpriteKey(), 0);
     this.move(this._direction);
@@ -142,11 +144,7 @@ class MainScene extends Phaser.Scene {
   changeFrameRate(frameRate: number) {
     this._frameRate = frameRate;
     // update animation
-    this.anims.remove('front');
-    this.anims.remove('right');
-    this.anims.remove('back');
-    this.anims.remove('left');
-    this._createAnimations();
+    this._createAnimations(true);
     // update sprite
     this.move(this._direction);
   }

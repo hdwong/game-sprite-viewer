@@ -83,3 +83,10 @@ canvas {
   margin-right: 8px;
   color: #666;
 }
+#information .source {
+  margin-left: 48px;
+  color: #666;
+}
+#information .source a {
+  color: #007bff;
+}

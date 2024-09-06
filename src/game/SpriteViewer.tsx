@@ -76,6 +76,11 @@ const SpriteViewer = () => {
             <option value="2">Preset 3</option>
           </select>
         </div>
+        {
+          [ '0', '1', '2' ].indexOf(spriteIndex) !== -1 && (
+            <div className="source">Preset Sprite by: <a href="https://thedangercrew.com/" target="blank">https://thedangercrew.com/</a></div>
+          )
+        }
         <div><label>Animation FrameRate:</label>
           <select value={frameRate} onChange={e => {
             setFrameRate(e.target.value);
