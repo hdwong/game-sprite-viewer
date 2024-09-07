@@ -12,17 +12,22 @@ class MainScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.spritesheet('test0', 'assets/test.png', {
+    this.load.setBaseURL('assets/sprites');
+    this.load.spritesheet('test0', 'test.png', {
       frameWidth: 32,
       frameHeight: 32,
     });
-    this.load.spritesheet('test1', 'assets/test1.png', {
+    this.load.spritesheet('test1', 'test1.png', {
       frameWidth: 32,
       frameHeight: 32,
     });
-    this.load.spritesheet('test2', 'assets/test2.png', {
+    this.load.spritesheet('test2', 'test2.png', {
       frameWidth: 32,
       frameHeight: 32,
+    });
+    this.load.spritesheet('test3', 'test3.png', {
+      frameWidth: 64,
+      frameHeight: 64,
     });
   }
 
@@ -30,7 +35,37 @@ class MainScene extends Phaser.Scene {
     return `test${this._spriteIndex}`;
   }
 
+  private _getSpriteFrameNumbers(direction: string)
+  {
+    switch (direction) {
+      case 'front':
+        if (this._spriteIndex === '3') {
+          return { start: 18, end: 26 };
+        }
+        return { start: 0, end: 3 };
+      case 'right':
+        if (this._spriteIndex === '3') {
+          return { start: 27, end: 35 };
+        }
+        return { start: 4, end: 7 };
+      case 'left':
+        if (this._spriteIndex === '3') {
+          return { start: 9, end: 17 };
+        }
+        return { start: 12, end: 15 };
+      case 'back':
+        if (this._spriteIndex === '3') {
+          return { start: 0, end: 8 };
+        }
+        return { start: 8, end: 11 };
+      default:
+    }
+    return { start: 0, end: 0 };
+  }
+
   private _createAnimations(remove = false) {
+    const frameRateTimes = this._spriteIndex === '3' ? 2 : 1;
+
     if (remove) {
       this.anims.remove('front');
       this.anims.remove('right');
@@ -39,36 +74,43 @@ class MainScene extends Phaser.Scene {
     }
     this.anims.create({
       key: 'front',
-      frames: this.anims.generateFrameNumbers(this._getSpriteKey(), { start: 0, end: 3 }),
-      frameRate: this._frameRate,
+      frames: this.anims.generateFrameNumbers(this._getSpriteKey(), this._getSpriteFrameNumbers('front')),
+      frameRate: this._frameRate * frameRateTimes,
       repeat: -1,
     });
     this.anims.create({
       key: 'right',
-      frames: this.anims.generateFrameNumbers(this._getSpriteKey(), { start: 4, end: 7 }),
-      frameRate: this._frameRate,
+      frames: this.anims.generateFrameNumbers(this._getSpriteKey(), this._getSpriteFrameNumbers('right')),
+      frameRate: this._frameRate * frameRateTimes,
       repeat: -1,
     });
     this.anims.create({
       key: 'back',
-      frames: this.anims.generateFrameNumbers(this._getSpriteKey(), { start: 8, end: 11 }),
-      frameRate: this._frameRate,
+      frames: this.anims.generateFrameNumbers(this._getSpriteKey(), this._getSpriteFrameNumbers('back')),
+      frameRate: this._frameRate * frameRateTimes,
       repeat: -1,
     });
     this.anims.create({
       key: 'left',
-      frames: this.anims.generateFrameNumbers(this._getSpriteKey(), { start: 12, end: 15 }),
-      frameRate: this._frameRate,
+      frames: this.anims.generateFrameNumbers(this._getSpriteKey(), this._getSpriteFrameNumbers('left')),
+      frameRate: this._frameRate * frameRateTimes,
       repeat: -1,
     });
+
+    if (this._spriteIndex === '3') {
+      this._sprite?.setScale(1);
+    } else {
+      this._sprite?.setScale(2);
+    }
   }
 
   create() {
     const { width, height } = this.game.config;
 
-    this._createAnimations();
     this._sprite = this.add.sprite(width as number >> 1, height as number >> 1, this._getSpriteKey(), 0)
         .setOrigin(0.5, 0.5);
+
+    this._createAnimations();
 
     this._cursors = this.input.keyboard?.createCursorKeys();
   }
@@ -123,7 +165,8 @@ class MainScene extends Phaser.Scene {
       case 'down-right':
         break;
       case 'stand':
-        this._sprite?.setTexture(this._getSpriteKey(), 0).stop();
+        const standIndex = this._getSpriteFrameNumbers('front').start;
+        this._sprite?.setTexture(this._getSpriteKey(), standIndex).stop();
         break;
       default:
         return;

@@ -5,10 +5,11 @@ import { EventEmitter } from "./EventEmitter";
 
 const config: Phaser.Types.Core.GameConfig = {
   type: AUTO,
-  width: 32,
-  height: 32,
-  parent: 'game-container',
+  width: 64,
+  height: 64,
+  parent: 'sprite-viewer-container',
   backgroundColor: '#fff',
+  pixelArt: true,
   scene: [
     MainScene,
   ],
@@ -49,8 +50,8 @@ const SpriteViewer = () => {
   };
 
   return (
-    <div id="game">
-      <div id="game-container" />
+    <div id="sprite-viewer">
+      <div id="sprite-viewer-container" />
       <div id="controller">
         <div className="arrow">
           {
@@ -74,11 +75,17 @@ const SpriteViewer = () => {
             <option value="0">Preset 1</option>
             <option value="1">Preset 2</option>
             <option value="2">Preset 3</option>
+            <option value="3">Preset 4</option>
           </select>
         </div>
         {
           [ '0', '1', '2' ].indexOf(spriteIndex) !== -1 && (
             <div className="source">Preset Sprite by: <a href="https://thedangercrew.com/" target="blank">https://thedangercrew.com/</a></div>
+          )
+        }
+        {
+          [ '3' ].indexOf(spriteIndex) !== -1 && (
+            <div className="source">Preset Sprite by: <a href="https://www.sourceoftales.org/" target="blank">https://www.sourceoftales.org/</a></div>
           )
         }
         <div><label>Animation FrameRate:</label>
