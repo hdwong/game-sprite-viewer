@@ -73,7 +73,8 @@ class MapScene extends Phaser.Scene {
       if (layer.name === 'Collision') {
         this._collisionLayer = map.createLayer(layer.name, map.tilesets.map(ts => ts.name), 0, 0);
         if (this._collisionLayer) {
-          this._collisionLayer.setCollisionByExclusion([ -1 ]);
+          this._collisionLayer.setCollisionByExclusion([ -1 ])
+              .setAlpha(0);
 
           if (this.game.config.physics.arcade?.debug) {
             // 设置碰撞调试信息，确保看到 tile 的碰撞框
@@ -97,7 +98,7 @@ class MapScene extends Phaser.Scene {
             startPoint.y = startPointObject.y;
           }
         }
-        this._player = this.physics.add.sprite(startPoint.x, startPoint.y/* , 'sprite', 0 */)
+        this._player = this.physics.add.sprite(startPoint.x, startPoint.y, 'sprite', 0)
             .setOrigin(0, 0)
             .play('down');
         return;

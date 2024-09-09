@@ -25,6 +25,7 @@
         "build": "vite build --config vite/config.prod.mjs"
     },
     "dependencies": {
+        "easystarjs": "^0.4.4",
         "lodash-es": "^4.17.21",
         "phaser": "^3.80.1",
         "react": "^18.3.1",

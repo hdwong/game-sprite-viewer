@@ -14,48 +14,32 @@ const config: Phaser.Types.Core.GameConfig = {
       debug: true,
     },
   },
+  scale: {
+    mode: Phaser.Scale.RESIZE,
+    parent: 'world-map',
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+    width: '100%',
+    height: '100%',
+  },
   scene: [
     MapScene,
   ],
 };
 
 const WorldMap = () => {
-  const refContoller = useRef<HTMLDivElement>(null);
   const refGame = useRef<Game | null>(null);
 
   useLayoutEffect(() => {
-    if (! refGame.current && refContoller.current) {
+    if (! refGame.current) {
       const width = window.innerWidth;
       const height = window.innerHeight
-      const { width: widthController } = refContoller.current.getBoundingClientRect();
-      refGame.current = new Game({ ...config, width: width - widthController, height });
+      refGame.current = new Game({ ...config, width, height });
     }
-
-    // 绑定 resize 事件
-    const resize = () => {
-      if (refGame.current && refContoller.current) {
-        const width = window.innerWidth;
-        const height = window.innerHeight
-        const { width: widthController } = refContoller.current.getBoundingClientRect();
-        refGame.current.scale.resize(width - widthController, height);
-      }
-    };
-    window.addEventListener('resize', resize);
-
-    return () => {
-      if (refGame.current) {
-        refGame.current.destroy(true);
-        refGame.current = null;
-      }
-      window.removeEventListener('resize', resize);
-    };
-  }, [ refContoller, refGame ]);
+  }, [ refGame ]);
 
   return (
     <div id="world-map">
       <div id="world-map-container" />
-      <div id="controller" ref={refContoller}>
-      </div>
     </div>
   );
 };
