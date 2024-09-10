@@ -19,7 +19,8 @@ class PathFindingScene extends Phaser.Scene {
   private _pathGraphics: Phaser.GameObjects.Graphics | null = null;
   private _pathTexts: Phaser.GameObjects.Text[] = [];
 
-  private _moveTimeline: Phaser.Time.Timeline | null = null;
+  private _movePath: Array<{ x: number, y: number }> = [];
+  private _moveTimer: Phaser.Tweens.Tween | null = null;
 
   preload() {
     this.load.setBaseURL('assets');
@@ -92,8 +93,7 @@ class PathFindingScene extends Phaser.Scene {
           }
         }
         this._player = this.physics.add.sprite(startPoint.x, startPoint.y, 'sprite', 0)
-            .setOrigin(0, 0)
-            .play('down');
+            .setOrigin(0, 0);
 
         // emit position
         const x = startPoint.x / map.tileWidth << 0;
@@ -179,23 +179,25 @@ class PathFindingScene extends Phaser.Scene {
       }
       this._easyStar.findPath(startX, startY, endX, endY, path => {
         if (path) {
-          this._moving = true;
+          // 停止当前移动
+          if (this._moveTimer) {
+            this._moveTimer.destroy();
+            this._moveTimer = null;
+            this._moving = false;
+          }
+          // 删除第一个节点 (当前 sprite 节点)
+          path.shift();
+          this._movePath = path;
           // 生成路径, 并使用 graphics 绘制
           if (this._pathGraphics) {
             this._pathGraphics.destroy();
           }
           this._pathTexts.forEach(v => v.destroy());
           this._pathTexts = [];
-          if (this._moveTimeline) {
-            this._moveTimeline.destroy();
-          }
-
           this._pathGraphics = this.add.graphics();
           this._pathGraphics.fillStyle(0xffffff, 0.5);
-          // 创建 timeline
-          this._moveTimeline = this.add.timeline([]);
           let totalCost = 0;
-          for (let i = 1; i < path.length; i++) {
+          for (let i = 0; i < path.length; i++) {
             const point = path[i];
             // 显示半透明矩形
             this._pathGraphics.fillRect(point.x * map.tileWidth, point.y * map.tileHeight, map.tileWidth, map.tileHeight);
@@ -211,58 +213,8 @@ class PathFindingScene extends Phaser.Scene {
                     fontSize: '12px',
                   }).setOrigin(0.5, 0.5));
             }
-            // 添加动画到 timeline
-            this._moveTimeline.add({
-              from: 200,
-              tween: {
-                targets: this._player,
-                x: point.x * map.tileWidth,
-                y: point.y * map.tileHeight,
-                duration: 200,
-                onStart: () => {
-                  // 获取上一个 point
-                  const lastPoint = path[i - 1];
-                  // 计算方向
-                  let direction = 'down';
-                  if (lastPoint.x === point.x) {
-                    if (lastPoint.y > point.y) {
-                      direction = 'up';
-                    }
-                  } else {
-                    if (lastPoint.x > point.x) {
-                      direction = 'left';
-                    } else {
-                      direction = 'right';
-                    }
-                  }
-                  this._player?.play(direction, true);
-                },
-                onComplete: () => {
-                  // emit position
-                  const x = point.x;
-                  const y = point.y;
-                  let terrain = '';
-                  let cost = 0;
-                  const tile0 = map!.getTileAt(x, y, true, 'Terrain');
-                  if (tile0 && tile0.properties) {
-                    terrain = tile0.properties.terrain;
-                  }
-                  const tile1 = map!.getTileAt(x, y, true, 'PathFinding');
-                  if (tile1 && tile1.properties) {
-                    cost = tile1.properties.cost;
-                  }
-
-                  EventEmitter.emit('position', { x, y, terrain, cost });
-                  // 如果是最后一个 point
-                  if (i === path.length - 1) {
-                    this._moving = false;
-                  }
-                },
-              },
-            });
           }
-          this._moveTimeline.play();
-          EventEmitter.emit('path', path, totalCost);
+          EventEmitter.emit('path', path.slice(), totalCost);
         } else {
           this._moving = false;
         }
@@ -280,9 +232,9 @@ class PathFindingScene extends Phaser.Scene {
         }
         this._pathTexts.forEach(v => v.destroy());
         this._pathTexts = [];
-        if (this._moveTimeline) {
-          this._moveTimeline.destroy();
-          this._moveTimeline = null;
+        if (this._moveTimer) {
+          this._moveTimer.destroy();
+          this._moveTimer = null;
         }
       }
       if (this._cursors.left.isDown) {
@@ -296,8 +248,67 @@ class PathFindingScene extends Phaser.Scene {
       }
     }
     if (! this._moving) {
-      this._player?.anims.stop();
-      this._player?.setFrame(0);
+      if (this._movePath.length > 0) {
+        // 开始移动
+        this._moving = true;
+        // 取出第一个点
+        const point = this._movePath[0]!;
+        // 获取当前 sprite 的位置和目标位置的差
+        const x = point.x * this._map!.tileWidth;
+        const y = point.y * this._map!.tileHeight;
+        const diffX = this._player!.x - x;
+        const diffY = this._player!.y - y;
+        // 计算方向 和 duration
+        let duration = 200;
+        let direction = 'down';
+        if (diffX === 0) {
+          // y 方向移动
+          if (diffY > 0) {
+            direction = 'up';
+          }
+          duration = duration / this._map!.tileHeight * Math.abs(diffY);
+        } else {
+          // x 方向移动
+          if (diffX > 0) {
+            direction = 'left';
+          } else {
+            direction = 'right';
+          }
+          duration = duration / this._map!.tileWidth * Math.abs(diffX);
+        }
+        this._moveTimer = this.tweens.add({
+          targets: this._player,
+          x, y,
+          duration,
+          onStart: () => {
+            // 计算方向
+            this._player?.play(direction, true);
+          },
+          onComplete: () => {
+            this._movePath.shift();
+            this._moving = false;
+            if (this._movePath.length === 0) {
+              // 移动结束
+              this._moveEnd();
+            }
+
+            // emit position
+            const x = point.x;
+            const y = point.y;
+            let terrain = '';
+            let cost = 0;
+            const tile0 = this._map!.getTileAt(x, y, true, 'Terrain');
+            if (tile0 && tile0.properties) {
+              terrain = tile0.properties.terrain;
+            }
+            const tile1 = this._map!.getTileAt(x, y, true, 'PathFinding');
+            if (tile1 && tile1.properties) {
+              cost = tile1.properties.cost;
+            }
+            EventEmitter.emit('position', { x, y, terrain, cost });
+          },
+        });
+      }
     }
   }
 
@@ -369,6 +380,12 @@ class PathFindingScene extends Phaser.Scene {
     // set position
     this._player!.x = x;
     this._player!.y = y;
+    this._moveEnd();
+  }
+
+  private _moveEnd() {
+    this._player?.anims.stop();
+    this._player?.setFrame(0);
   }
 }
 
